@@ -1,7 +1,16 @@
  /* Function factory creating players */
- function createPlayer (name) {
-    return {name};
-}
+ function Player(){
+    const players = [];
+    
+    function createPlayer(name) {
+        const player = {};
+        player.name = name;
+        player.token = (players.length == 0) ? 'x' : 'o';
+        players.push(player);      
+    }
+    
+    return {createPlayer, players};
+ }
 
 /* Gameboard - factory function */
 function Gameboard () {
@@ -9,16 +18,16 @@ function Gameboard () {
     const createBoard = (function(){
         const rows = 3;
         const columns = 3;
-        const board = [];
+        const gameboard = [];
 
         for (let i=0;i<rows;i++) {
-            board[i] = [];
+            gameboard[i] = [];
             for(let j=0;j<columns;j++) {
-                board[i].push(Cell());
+                gameboard[i].push(Cell());
             }
         }
     
-        const getBoard = () => board;
+        const getBoard = () => gameboard;
 
         return {getBoard};
     })();
@@ -55,12 +64,49 @@ function Gameboard () {
         console.log(gameboardWithValues);
     };
 
-    console.log('game started');
     return {chooseSquare, printBoard};
 
     };
 
+function Game(){
+    console.log('game started');
+    const people = Player();
+    /* Må lage spillere før man kan kjøre under... */
+    people.createPlayer('Anja');
+    people.createPlayer('Other'); 
+
+    const players = people.players;
+
+    let active_player = players[0];
+
+    const gameboard = Gameboard();
+
+    const switchPlayer = () => {
+        active_player = (active_player === players[0]) ? players[1] : players[0];
+    }
+    const getActivePlayer = () => active_player;
+
+    const printNewRound = () => {
+        gameboard.printBoard();
+        console.log(`It is ${getActivePlayer().name} turn`);
+    }
+
+    const playRound = (row, column) => {
+        gameboard.chooseSquare(row, column, getActivePlayer().token);
+        
+        /* Check if game is won or tie */
+        switchPlayer();
+        printNewRound();
+    }
+    if(people.players.length === 2){
+        printNewRound();
+    }else {
+        console.log('Add 2 players');
+    }
+
+    return {playRound, getActivePlayer};
+};
   
-   
+const game = Game();
 
 
