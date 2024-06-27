@@ -5,36 +5,31 @@
     function createPlayer(name) {
         const player = {};
         player.name = name;
-        player.token = (players.length == 0) ? 'x' : 'o';
+        player.sign = (players.length == 0) ? 'x' : 'o';
         players.push(player);      
     }
     
     return {createPlayer, players};
  }
 
-/* Gameboard - factory function */
-function Gameboard () {
-    /* Module pattern IIFE */
-    const createBoard = (function(){
-        const rows = 3;
-        const columns = 3;
-        const gameboard = [];
+/* Gameboard - factory function inside Module pattern IIFE */
+const gameboard = (() => {
+    
+    const rows = 3;
+    const columns = 3;
+    const gameboard = [];
 
-        for (let i=0;i<rows;i++) {
-            gameboard[i] = [];
-            for(let j=0;j<columns;j++) {
-                gameboard[i].push(Cell());
-            }
+    for (let i=0;i<rows;i++) {
+        gameboard[i] = [];
+        for(let j=0;j<columns;j++) {
+            gameboard[i].push(Square());
         }
+    }
     
-        const getBoard = () => gameboard;
-
-        return {getBoard};
-    })();
+    const getBoard = () => gameboard;  
     
-    const gameboard = createBoard.getBoard();
 
-    function Cell() {
+    function Square() {
         let value = 0;
         
         const addMark = (player) => {
@@ -64,22 +59,23 @@ function Gameboard () {
         console.log(gameboardWithValues);
     };
 
-    return {chooseSquare, printBoard};
+    return {getBoard, chooseSquare, printBoard};
 
-    };
+})();
+
 
 function Game(){
-    console.log('game started');
+    console.log('Game started');
     const people = Player();
-    /* Må lage spillere før man kan kjøre under... */
-    people.createPlayer('Anja');
-    people.createPlayer('Other'); 
 
     const players = people.players;
+    /* Må lage spillere før man kan kjøre under */
+    const input_player1 = prompt('Player 1\'s name: ');
+    people.createPlayer(input_player1);
+    const input_player2 = prompt('Player 2\'s name: ');
+    people.createPlayer(input_player2);
 
     let active_player = players[0];
-
-    const gameboard = Gameboard();
 
     const switchPlayer = () => {
         active_player = (active_player === players[0]) ? players[1] : players[0];
@@ -92,19 +88,18 @@ function Game(){
     }
 
     const playRound = (row, column) => {
-        gameboard.chooseSquare(row, column, getActivePlayer().token);
+        gameboard.chooseSquare(row, column, getActivePlayer().sign);
         
         /* Check if game is won or tie */
         switchPlayer();
         printNewRound();
     }
-    if(people.players.length === 2){
-        printNewRound();
-    }else {
-        console.log('Add 2 players');
-    }
 
-    return {playRound, getActivePlayer};
+    printNewRound();
+
+    return {playRound, 
+        getActivePlayer,
+        createPlayer: people.createPlayer};
 };
   
 const game = Game();
