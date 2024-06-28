@@ -46,15 +46,16 @@ const gameboard = (() => {
     
         return {addMark, getValue};
     };
+ 
       
     const chooseSquare = (row, column, player) => {
         if(gameboard[row][column].getValue() !== 0) {
-            return false;
+            console.log('Try again!')
+            return false; 
         }
         else {    
         gameboard[row][column].addMark(player);
         console.log(`Chosen: ${row} and ${column}`);
-        return true;
         } 
     }
 
@@ -98,7 +99,7 @@ function Game(){
     let rounds = 0;
     const roundPlayed = () => rounds++;
 
-    /* Define all possible winning 3-in-a-row */
+    /* Define all possible winning 3-in-a-rows */
     const chosenRow = (row) =>  gameboard.getBoardValues()[row];
 
     const transpose = (matrix) => matrix.map((col, i) => matrix.map((row) => row[i]));
@@ -121,31 +122,32 @@ function Game(){
         return diagnol;
     }
 
-    const checkValue = (curVal) => curVal === getActivePlayer().sign; 
+    const checkAllValues = (curVal) => curVal === getActivePlayer().sign; 
 
     const checkTie = (curVal) => curVal != 0;
 
     const playRound = (row, column) => {
-        do{
-            gameboard.chooseSquare(row, column, getActivePlayer().sign);
-        }while(!gameboard.chooseSquare(row, column, getActivePlayer().sign));
-        roundPlayed();
+        const markAdded = gameboard.chooseSquare(row, column, getActivePlayer().sign);
+        /* chooseSquare function returns false if square not available */
+        if(markAdded !== false) {
+            roundPlayed();
         
-        /* Check if game is won or tie */
-        /* No winning before at least 5 rounds are played */
-        if(rounds>4){
-            if(chosenRow(row).every(checkValue) || chosenColumn(column).every(checkValue)
-               || diagnolTopLeft().every(checkValue) || diagnolBottomLeft().every(checkValue)) {
-                console.log(`${getActivePlayer().name} has won the game`) 
-                return;
-            }
+            /* Check if game is won or tie */
+            /* No winning before at least 5 rounds are played */
+            if(rounds>4){
+                if(chosenRow(row).every(checkAllValues) || chosenColumn(column).every(checkAllValues)
+                    || diagnolTopLeft().every(checkAllValues) || diagnolBottomLeft().every(checkAllValues)) {
+                    console.log(`${getActivePlayer().name} has won the game`) 
+                    return;
+                }
             /* Make gameboard array 1-d before checking all values */
-            else if(gameboard.getBoardValues().flat().every(checkTie)) {
-                console.log('It\'s a tie!');
-            }
-        } 
+                else if(gameboard.getBoardValues().flat().every(checkTie)) {
+                    console.log('It\'s a tie!');
+                }
+            } 
  
-        switchPlayerTurn();
+            switchPlayerTurn();
+        }
         printNewRound();
     }
 
