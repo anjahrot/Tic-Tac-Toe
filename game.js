@@ -27,6 +27,12 @@ const gameboard = (() => {
     }
     
     const getBoard = () => gameboard;  
+
+    const getBoardValues = () => {
+        const gameboardValues = gameboard.map((row) => 
+            row.map((cell) => cell.getValue()));
+        return gameboardValues;
+    }
     
 
     function Square() {
@@ -59,7 +65,8 @@ const gameboard = (() => {
         console.log(gameboardWithValues);
     };
 
-    return {getBoard, chooseSquare, printBoard};
+
+    return {getBoard, chooseSquare, printBoard, getBoardValues};
 
 })();
 
@@ -77,9 +84,10 @@ function Game(){
 
     let active_player = players[0];
 
-    const switchPlayer = () => {
+    const switchPlayerTurn = () => {
         active_player = (active_player === players[0]) ? players[1] : players[0];
     }
+    
     const getActivePlayer = () => active_player;
 
     const printNewRound = () => {
@@ -87,11 +95,50 @@ function Game(){
         console.log(`It is ${getActivePlayer().name} turn`);
     }
 
+    let rounds = 0;
+    const roundPlayed = () => rounds++;
+
+    const chosenRow = (row) =>  gameboard.getBoardValues()[row];
+
+    const transpose = (matrix) => matrix.map((col, i) => matrix.map((row) => row[i]));
+
+    const chosenColumn = (column) => transpose(gameboard.getBoardValues())[column];
+
+    const diagnolTopLeft = () => {
+        const diagnol = [];
+        for(let i=0; i<2; i++){
+            diagnol.push(gameboard.getBoardValues()[i][i]);
+        }
+        return diagnol;
+    }
+
+    const diagnolBottomLeft = () => {
+        const diagnol = [];
+        for(let i=0; i<2; i++){
+            diagnol.push(gameboard.getBoardValues()[i][i]);
+        }
+        return diagnol;
+    }
+    
+    const checkValue = (curVal) => curVal === getActivePlayer().sign; 
+
+    const checkTie = (curVal) => curVal != 0;
+
     const playRound = (row, column) => {
         gameboard.chooseSquare(row, column, getActivePlayer().sign);
-        
+        roundPlayed();
         /* Check if game is won or tie */
-        switchPlayer();
+        /* No winning before at least 5 rounds are played */
+        if(rounds>1){
+            console.log(chosenColumn(column));
+            if(chosenRow(row).every(checkValue) || chosenColumn(column).every(checkValue)) {
+                console.log(`${getActivePlayer().name} has won the game`) 
+                return;
+            }
+        } 
+ 
+        
+        switchPlayerTurn();
         printNewRound();
     }
 
@@ -103,5 +150,4 @@ function Game(){
 };
   
 const game = Game();
-
 
