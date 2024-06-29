@@ -1,0 +1,96 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: 'action_manregular';
+    src: url('fonts/action_man-webfont.woff2') format('woff2'),
+         url('fonts/action_man-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+body {
+    min-height: 100vh;
+    color: blue;
+    font-family: 'action_manregular', Arial, Helvetica, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+}
+
+.container > h1 {
+    font-size: 40px;
+}
+
+
+#popup {
+    display: none;
+    background-color: greenyellow;
+    padding: 40px;
+    position: absolute;
+    z-index: 1;
+    border: 1px solid blue;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    width: 50%;
+}
+
+#form {
+    font-size: 24px;
+}
+
+form ul {
+    list-style: none;
+}
+
+form label {
+    display: block;
+}
+
+form legend {
+    padding-bottom: 20px;
+    font-size: 34px;
+}
+
+form input {
+    width: 80%;
+    height: 30px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+form button {
+    padding: 5px 15px;
+    border-style: none;
+    font-family: 'action_manregular', Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    background-color:blue;
+    color: greenyellow;
+}
+
+.playerTurnDiv{
+    height: 300px;
+}
+
+.boardDiv {
+    display: grid;
+    width: 600px;
+    height: 600px;
+    grid: repeat(3, 1fr) / repeat(3, 1fr);
+    gap: 5px;
+    background-color: greenyellow;
+    border: 4px solid blue;
+}
+
+
+
+
