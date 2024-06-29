@@ -157,6 +157,7 @@ function Game(){
         getActivePlayer,
         createPlayer: people.createPlayer};
 };
-  
-const game = Game();
+
+
+
 
