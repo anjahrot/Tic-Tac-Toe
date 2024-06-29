@@ -72,16 +72,7 @@ const gameboard = (() => {
 })();
 
 
-function Game(){
-    console.log('Game started');
-    const people = Player();
-
-    const players = people.players;
-    /* Må lage spillere før man kan kjøre under */
-    const input_player1 = prompt('Player 1\'s name: ');
-    people.createPlayer(input_player1);
-    const input_player2 = prompt('Player 2\'s name: ');
-    people.createPlayer(input_player2);
+function Game(players){
 
     let active_player = players[0];
 
@@ -91,10 +82,12 @@ function Game(){
     
     const getActivePlayer = () => active_player;
 
+
+    /* For console version of game... 
     const printNewRound = () => {
         gameboard.printBoard();
         console.log(`It is ${getActivePlayer().name} turn`);
-    }
+    } */
 
     let rounds = 0;
     const roundPlayed = () => rounds++;
@@ -127,6 +120,7 @@ function Game(){
     const checkTie = (curVal) => curVal != 0;
 
     const playRound = (row, column) => {
+        let gameState = '';
         const markAdded = gameboard.chooseSquare(row, column, getActivePlayer().sign);
         /* chooseSquare function returns false if square not available */
         if(markAdded !== false) {
@@ -137,27 +131,128 @@ function Game(){
             if(rounds>4){
                 if(chosenRow(row).every(checkAllValues) || chosenColumn(column).every(checkAllValues)
                     || diagnolTopLeft().every(checkAllValues) || diagnolBottomLeft().every(checkAllValues)) {
-                    console.log(`${getActivePlayer().name} has won the game`) 
-                    return;
+                    gameState = `${getActivePlayer().name} has won the game`;
+                    return gameState;
                 }
             /* Make gameboard array 1-d before checking all values */
                 else if(gameboard.getBoardValues().flat().every(checkTie)) {
-                    console.log('It\'s a tie!');
+                    gameState = 'It\'s a tie!';
+                    return gameState; 
                 }
             } 
  
             switchPlayerTurn();
         }
-        printNewRound();
+        /* printNewRound(); */
+        return gameState;
     }
 
-    printNewRound();
+    /* printNewRound(); */
 
     return {playRound, 
         getActivePlayer,
-        createPlayer: people.createPlayer};
+        getBoard: gameboard.getBoard
+    };
 };
 
+function GameController() {
+
+    const playerTurnDiv = document.querySelector(".turn");
+    const boardDiv = document.querySelector(".board");
+    const popupDiv = document.querySelector("#popup")
+    const formElem = document.querySelector("form");
+    const startBtn = document.querySelector("#startBtn");
+    
+    //Handle input from form to create players and then start game
+    startBtn.addEventListener("click", getPlayers_startGame);
+    
+    const player = Player();
+    let players = player.players;
+
+    function getPlayers_startGame (e) {
+        e.preventDefault();
+
+        const data = new FormData(formElem);
+
+        //Need Player module to create players
+        let player_one = data.get("p1_name");
+        let player_two = data.get("p2_name");
+
+        player.createPlayer(player_one);
+        player.createPlayer(player_two);
+       
+        popupDiv.style.display = 'none'; 
+        boardDiv.style.display = 'grid';
+        //remove input text 
+        formElem.reset();  
+        displayController(); 
+    }
+    
+    function displayController () {
+        let game = Game(players);
+
+        const updateScreen = (roundResult) => {
+            boardDiv.textContent = '';
+
+            //Get newest version of the board and player turn
+            const gameboard = game.getBoard();
+            const activePlayer = game.getActivePlayer();
+
+            //render board
+            let row_index = 0;
+            gameboard.forEach(row => {
+                row.forEach((cell, col_index) => {
+                    const cellButton = document.createElement("button");
+                    cellButton.classList.add("cell");
+                    //need row and column index to pass into playRound
+                    cellButton.dataset.row = row_index;
+                    cellButton.dataset.column = col_index;
+                    cellButton.textContent = cell.getValue();
+                    boardDiv.appendChild(cellButton);
+                })
+                row_index++;
+            })
+            /* Add logic to end game and write message to screen when game is over, play new game btn */
+            if(roundResult !== ''){
+                playerTurnDiv.textContent = roundResult;
+                //Board not clickable once game is finished
+                boardDiv.removeEventListener("click", clickHandlerBoard);
+                const newGameBtn = document.createElement("button");
+                newGameBtn.textContent = 'New Game';
+                newGameBtn.classList.add("new");
+                playerTurnDiv.appendChild(newGameBtn);
+                //Add eventlistener to new game button
+                newGameBtn.addEventListener("click", startNewGame);
+            }
+            else{
+                playerTurnDiv.textContent = `It is ${activePlayer.name}'s turn...`;
+            }
+        }
+
+        //Add eventlistener for the board
+        boardDiv.addEventListener("click", clickHandlerBoard);
+
+        function clickHandlerBoard(e) {
+            const selectedRow = e.target.dataset.row;
+            const selectedColumn = e.target.dataset.column;
+        
+            //If hit gap between squares
+            if(!selectedColumn) return;
+
+            const roundResult = game.playRound(selectedRow, selectedColumn);
+            updateScreen(roundResult);
+        }
 
 
+        function startNewGame() {
+            popupDiv.style.display = 'inline';
+            boardDiv.style.display = 'none';
+            playerTurnDiv.textContent = '';
+        }
 
+    //update screen on start
+    updateScreen('');
+    }
+}
+
+GameController();
