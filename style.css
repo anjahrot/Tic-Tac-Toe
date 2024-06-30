@@ -106,10 +106,12 @@ form button {
     justify-content: center;
     align-items: center;
     text-align: center;
-    font-size: 2rem;
+    font-size: 150px;
+    color: blue;
     background-color: greenyellow;
     cursor: pointer;
 }
+
 
 
 
