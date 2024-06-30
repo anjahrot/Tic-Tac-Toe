@@ -32,13 +32,13 @@ const gameboard = (() => {
     
     const getBoard = () => gameboard;  
 
+    //Get board array with value of each square
     const getBoardValues = () => {
         const gameboardValues = gameboard.map((row) => 
             row.map((square) => square.getValue()));
         return gameboardValues;
     }
     
-
     function Square() {
         let value = 0;
         
@@ -71,6 +71,29 @@ const gameboard = (() => {
             row.map((square) => square.removeMark()));
         
     }
+
+    /* Define all possible winning 3-in-a-rows on the board */
+    const chosenRow = (row) =>  getBoardValues()[row];
+
+    const transpose = (matrix) => matrix.map((col, i) => matrix.map((row) => row[i]));
+
+    const chosenColumn = (column) => transpose(getBoardValues())[column];
+
+    const diagnolTopLeft = () => {
+        const diagnol = [];
+        for(let i=0; i<=2; i++){
+            diagnol.push(getBoardValues()[i][i]);
+        }
+        return diagnol;
+    }
+
+    const diagnolBottomLeft = () => {
+        const diagnol = [];
+        for(let i=0; i<=2; i++){
+            diagnol.push(getBoardValues()[2-i][i]);
+        }
+        return diagnol;
+    }
     /* Print board in console - not needed after adding UI */
     const printBoard = () => {
         const gameboardWithValues = gameboard.map((row) => 
@@ -79,7 +102,9 @@ const gameboard = (() => {
     };
 
 
-    return {getBoard, chooseSquare, printBoard, getBoardValues, clearBoard};
+    return {getBoard, chooseSquare, printBoard, getBoardValues, clearBoard, chosenRow, 
+        chosenColumn, diagnolBottomLeft, diagnolTopLeft
+    };
 
 })();
 
@@ -94,45 +119,15 @@ function Game(players){
     
     const getActivePlayer = () => active_player;
 
-
-    /* For console version of game... 
-    const printNewRound = () => {
-        gameboard.printBoard();
-        console.log(`It is ${getActivePlayer().name} turn`);
-    } */
-
     let rounds = 0;
     const roundPlayed = () => rounds++;
-
-    /* Define all possible winning 3-in-a-rows */
-    const chosenRow = (row) =>  gameboard.getBoardValues()[row];
-
-    const transpose = (matrix) => matrix.map((col, i) => matrix.map((row) => row[i]));
-
-    const chosenColumn = (column) => transpose(gameboard.getBoardValues())[column];
-
-    const diagnolTopLeft = () => {
-        const diagnol = [];
-        for(let i=0; i<=2; i++){
-            diagnol.push(gameboard.getBoardValues()[i][i]);
-        }
-        return diagnol;
-    }
-
-    const diagnolBottomLeft = () => {
-        const diagnol = [];
-        for(let i=0; i<=2; i++){
-            diagnol.push(gameboard.getBoardValues()[2-i][i]);
-        }
-        return diagnol;
-    }
 
     const checkAllValues = (curVal) => curVal === getActivePlayer().sign; 
 
     const checkTie = (curVal) => curVal != 0;
 
     const playRound = (row, column) => {
-        let gameState = 'notFinished';
+        let gameState = '';
         const markAdded = gameboard.chooseSquare(row, column, getActivePlayer().sign);
         /* chooseSquare function returns false if square not available */
         if(markAdded !== false) {
@@ -141,10 +136,10 @@ function Game(players){
             /* Check if game is won or tie */
             /* No winning before at least 5 rounds are played */
             if(rounds>4){
-                if(chosenRow(row).every(checkAllValues) || chosenColumn(column).every(checkAllValues)
-                    || diagnolTopLeft().every(checkAllValues) || diagnolBottomLeft().every(checkAllValues)) {
-                    gameState = `${getActivePlayer().name} has won the game`;
-                    return gameState;
+                if(gameboard.chosenRow(row).every(checkAllValues) || gameboard.chosenColumn(column).every(checkAllValues)
+                    || gameboard.diagnolTopLeft().every(checkAllValues) || gameboard.diagnolBottomLeft().every(checkAllValues)) {
+                        gameState = `${getActivePlayer().name} wins!`;
+                        return gameState;
                 }
             /* Make gameboard array 1-d before checking all values */
                 else if(gameboard.getBoardValues().flat().every(checkTie)) {
@@ -155,11 +150,9 @@ function Game(players){
  
             switchPlayerTurn();
         }
-        /* printNewRound(); */
+
         return gameState;
     }
-
-    /* printNewRound(); */
 
     return {playRound, 
         getActivePlayer,
@@ -237,7 +230,7 @@ function GameController() {
                 row_index++;
             })
             /* Logic to end game and write message to screen when game is over */
-            if(roundResult !== 'notFinished'){
+            if(roundResult !== ''){
                 playerTurnDiv.textContent = roundResult;
                 //Board not clickable once game is finished
                 boardDiv.removeEventListener("click", clickHandlerBoard);
@@ -281,7 +274,7 @@ function GameController() {
         }
 
     //update screen on start
-    updateScreen('notFinished');
+    updateScreen('');
     }
 }
 
