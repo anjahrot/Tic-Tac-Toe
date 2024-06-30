@@ -8,8 +8,12 @@
         player.sign = (players.length == 0) ? 'x' : 'o';
         players.push(player);      
     }
+
+    function removePlayer(){
+        players.pop();
+    }
     
-    return {createPlayer, players};
+    return {createPlayer, removePlayer, players};
  }
 
 /* Gameboard - factory function inside Module pattern IIFE */
@@ -30,7 +34,7 @@ const gameboard = (() => {
 
     const getBoardValues = () => {
         const gameboardValues = gameboard.map((row) => 
-            row.map((cell) => cell.getValue()));
+            row.map((square) => square.getValue()));
         return gameboardValues;
     }
     
@@ -41,10 +45,14 @@ const gameboard = (() => {
         const addMark = (player) => {
             value = player;
         }
+
+        const removeMark = () => {
+            value = 0;
+        }
     
         const getValue = () => value;
     
-        return {addMark, getValue};
+        return {addMark, getValue, removeMark};
     };
  
       
@@ -55,19 +63,23 @@ const gameboard = (() => {
         }
         else {    
         gameboard[row][column].addMark(player);
-        console.log(`Chosen: ${row} and ${column}`);
         } 
     }
 
+    const clearBoard = () => {
+        gameboard.map((row) => 
+            row.map((square) => square.removeMark()));
+        
+    }
     /* Print board in console - not needed after adding UI */
     const printBoard = () => {
         const gameboardWithValues = gameboard.map((row) => 
-            row.map((cell) => cell.getValue()))
+            row.map((square) => square.getValue()))
         console.log(gameboardWithValues);
     };
 
 
-    return {getBoard, chooseSquare, printBoard, getBoardValues};
+    return {getBoard, chooseSquare, printBoard, getBoardValues, clearBoard};
 
 })();
 
@@ -120,7 +132,7 @@ function Game(players){
     const checkTie = (curVal) => curVal != 0;
 
     const playRound = (row, column) => {
-        let gameState = '';
+        let gameState = 'notFinished';
         const markAdded = gameboard.chooseSquare(row, column, getActivePlayer().sign);
         /* chooseSquare function returns false if square not available */
         if(markAdded !== false) {
@@ -151,7 +163,8 @@ function Game(players){
 
     return {playRound, 
         getActivePlayer,
-        getBoard: gameboard.getBoard
+        getBoard: gameboard.getBoard,
+        clearBoard: gameboard.clearBoard
     };
 };
 
@@ -166,6 +179,7 @@ function GameController() {
     //Handle input from form to create players and then start game
     startBtn.addEventListener("click", getPlayers_startGame);
     
+    //Need Player module to create players
     const player = Player();
     let players = player.players;
 
@@ -174,13 +188,13 @@ function GameController() {
 
         const data = new FormData(formElem);
 
-        //Need Player module to create players
         let player_one = data.get("p1_name");
         let player_two = data.get("p2_name");
 
         player.createPlayer(player_one);
         player.createPlayer(player_two);
        
+        //hide popup window and show board
         popupDiv.style.display = 'none'; 
         boardDiv.style.display = 'grid';
         //remove input text 
@@ -192,6 +206,7 @@ function GameController() {
         let game = Game(players);
 
         const updateScreen = (roundResult) => {
+            //clear content before rendering updated screen
             boardDiv.textContent = '';
 
             //Get newest version of the board and player turn
@@ -201,27 +216,37 @@ function GameController() {
             //render board
             let row_index = 0;
             gameboard.forEach(row => {
-                row.forEach((cell, col_index) => {
+                row.forEach((square, col_index) => {
                     const cellButton = document.createElement("button");
                     cellButton.classList.add("cell");
-                    //need row and column index to pass into playRound
+                    //need row and column index to pass into playRound function
                     cellButton.dataset.row = row_index;
                     cellButton.dataset.column = col_index;
-                    cellButton.textContent = cell.getValue();
+                    const square_value = square.getValue();
+
+                    if(square_value === 0){
+                        cellButton.textContent = '';
+                    } else {
+                        if(square_value === 'o'){
+                            cellButton.style.color = "red";
+                        }
+                        cellButton.textContent = square.getValue();
+                    }
                     boardDiv.appendChild(cellButton);
                 })
                 row_index++;
             })
-            /* Add logic to end game and write message to screen when game is over, play new game btn */
-            if(roundResult !== ''){
+            /* Logic to end game and write message to screen when game is over */
+            if(roundResult !== 'notFinished'){
                 playerTurnDiv.textContent = roundResult;
                 //Board not clickable once game is finished
                 boardDiv.removeEventListener("click", clickHandlerBoard);
+
+                //Add button for option to play new game
                 const newGameBtn = document.createElement("button");
                 newGameBtn.textContent = 'New Game';
                 newGameBtn.classList.add("new");
                 playerTurnDiv.appendChild(newGameBtn);
-                //Add eventlistener to new game button
                 newGameBtn.addEventListener("click", startNewGame);
             }
             else{
@@ -248,10 +273,15 @@ function GameController() {
             popupDiv.style.display = 'inline';
             boardDiv.style.display = 'none';
             playerTurnDiv.textContent = '';
+   
+            player.removePlayer();
+            player.removePlayer();
+
+            game.clearBoard();
         }
 
     //update screen on start
-    updateScreen('');
+    updateScreen('notFinished');
     }
 }
 
