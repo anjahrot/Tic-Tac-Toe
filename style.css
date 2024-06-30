@@ -38,7 +38,7 @@ body {
     position: absolute;
     z-index: 1;
     border: 1px solid blue;
-    top: 40%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%); 
     width: 40%;
@@ -67,6 +67,7 @@ form input {
     padding: 4px;
     margin-bottom: 20px;
     font-size: 20px;
+    border: 1px solid blue;
 }
 
 .new,
