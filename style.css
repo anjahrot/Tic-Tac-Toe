@@ -95,8 +95,8 @@ form button {
 .board {
     display: none;
     /* set when popup is closed - display: grid; */
-    width: 600px;
-    height: 600px;
+    width: 400px;
+    height: 400px;
     grid: repeat(3, 1fr) / repeat(3, 1fr);
     gap: 5px;
     background-color: blue;
@@ -108,8 +108,9 @@ form button {
     justify-content: center;
     align-items: center;
     text-align: center;
-    font-size: 150px;
+    font-size: 100px;
     color: blue;
+    border-style: none;
     background-color: greenyellow;
     cursor: pointer;
 }
